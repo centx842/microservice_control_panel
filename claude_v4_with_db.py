@@ -40,40 +40,47 @@ class ConfigLoader(QThread):
 
     def run(self):
         try:
-            # Step 1: Skip database connection - use mock data
+            # Step 1: Connect to PostgreSQL
             if self.should_stop:
                 return
-            self.progress_update.emit("Loading application configuration...")
-            time.sleep(0.5)
+            self.progress_update.emit("Connecting to PostgreSQL...")
+            time.sleep(1)
 
-            # Step 2: Use mock configuration data
+            conn = self.connect_postgres()
+            if not conn or self.should_stop:
+                self.finished.emit(False, "PostgreSQL connection failed", {})
+                return
+
+            # Step 2: Load configuration from database
             if self.should_stop:
                 return
-            self.progress_update.emit("Setting up microservices...")
+            self.progress_update.emit("Loading configuration from database...")
             time.sleep(0.5)
 
-            # Mock configuration data
-            config = {
-                'app_name': 'NASTP Control Panel',
-                'app_version': '2.0.0',
-                'microservices': 'auth_service.py,data_service.py,api_service.py,notification_service.py,logging_service.py',
-                'auto_start': 'auth_service.py,data_service.py',
-                'log_level': 'INFO',
-                'max_workers': '8'
-            }
+            config = self.load_config_from_db(conn)
+            if not config or self.should_stop:
+                self.finished.emit(False, "Failed to load configuration", {})
+                return
+
+            # Step 3: Validate microservices files
+            if self.should_stop:
+                return
+            self.progress_update.emit("Validating microservices...")
+            time.sleep(0.5)
 
             if not self.validate_microservices(config) or self.should_stop:
                 self.finished.emit(False, "Some microservice files are missing", config)
                 return
 
-            # Step 3: Initialize application
+            # Step 4: Initialize microservices
             if self.should_stop:
                 return
-            self.progress_update.emit("Finalizing setup...")
-            time.sleep(0.8)
+            self.progress_update.emit("Initializing microservices...")
+            time.sleep(1)
 
+            conn.close()
             if not self.should_stop:
-                self.finished.emit(True, "Application ready!", config)
+                self.finished.emit(True, "Setup completed successfully", config)
 
         except Exception as e:
             if not self.should_stop:
@@ -607,8 +614,8 @@ class SplashScreen(QSplashScreen):
     """Custom splash screen with transparent background and logo"""
 
     def __init__(self):
-        # Create a transparent pixmap for the base - size for logo + status
-        pixmap = QPixmap(250, 280)
+        # Create a transparent pixmap for the base
+        pixmap = QPixmap(400, 300)
         pixmap.fill(Qt.transparent)
 
         super().__init__(pixmap)
@@ -632,37 +639,58 @@ class SplashScreen(QSplashScreen):
         self.is_closing = False
 
     def setup_ui(self):
-        """Setup the UI elements - logo with status"""
-        # Create logo label at the top
-        self.logo_label = QLabel(self)
-        self.logo_label.setGeometry(25, 20, 200, 200)
+        """Setup the UI elements"""
+        # Create main widget
+        self.main_widget = QWidget()
+        self.main_widget.setFixedSize(400, 300)
+
+        # Create layout
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setSpacing(20)
+
+        # Logo label
+        self.logo_label = QLabel()
         self.logo_label.setAlignment(Qt.AlignCenter)
         self.logo_label.setStyleSheet("""
             QLabel {
-                background-color: transparent;
-                border: none;
-                padding: 0px;
-            }
-        """)
-
-        # Create status label at the bottom
-        self.status_label = QLabel("Initializing...", self)
-        self.status_label.setGeometry(25, 230, 200, 40)
-        self.status_label.setAlignment(Qt.AlignCenter)
-        self.status_label.setStyleSheet("""
-            QLabel {
-                color: #ffffff;
-                font-size: 12px;
-                font-weight: 500;
-                background-color: rgba(52, 152, 219, 0.8);
-                padding: 8px 12px;
-                border-radius: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.3);
+                background-color: rgba(255, 255, 255, 0.9);
+                border: 2px solid #3498db;
+                border-radius: 10px;
+                padding: 20px;
             }
         """)
 
         # Load logo image
         self.load_logo()
+
+        # Status label
+        self.status_label = QLabel("Initializing...")
+        self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setStyleSheet("""
+            QLabel {
+                color: #34495e;
+                font-size: 14px;
+                font-weight: 500;
+                background-color: rgba(255, 255, 255, 0.8);
+                padding: 10px 20px;
+                border-radius: 15px;
+                border: 1px solid #bdc3c7;
+            }
+        """)
+
+        # Add widgets to layout
+        layout.addWidget(self.logo_label)
+        layout.addWidget(self.status_label)
+
+        self.main_widget.setLayout(layout)
+
+        # Apply main widget style
+        self.main_widget.setStyleSheet("""
+            QWidget {
+                background-color: transparent;
+            }
+        """)
 
     def load_logo(self):
         """Load and display the logo image"""
@@ -672,9 +700,8 @@ class SplashScreen(QSplashScreen):
             # Load the GIF logo using QMovie for animation support
             movie = QMovie(logo_path)
             
-            # Set a fixed size to prevent window resizing (fills the entire 200x200 window)
-            from PyQt5.QtCore import QSize
-            movie.setScaledSize(QSize(200, 200))
+            # Scale the movie to fit nicely (max 150x150)
+            movie.setScaledSize(movie.scaledSize().scaled(150, 150, Qt.KeepAspectRatio))
             
             # Set the movie to the label and start it
             self.logo_label.setMovie(movie)
@@ -682,14 +709,12 @@ class SplashScreen(QSplashScreen):
 
         else:
             # Fallback to text logo if GIF not found
-            self.logo_label.setText("🚀 NASTP")
+            self.logo_label.setText("🚀 MyApp")
             self.logo_label.setStyleSheet(self.logo_label.styleSheet() + """
                 QLabel {
-                    color: #ffffff;
-                    font-size: 36px;
+                    color: #2c3e50;
+                    font-size: 48px;
                     font-weight: bold;
-                    background-color: rgba(52, 152, 219, 0.8);
-                    border-radius: 100px;
                 }
             """)
 
@@ -765,13 +790,17 @@ class SplashScreen(QSplashScreen):
 
     def paintEvent(self, event):
         """Custom paint event to draw the splash screen"""
-        # Let Qt handle the painting since we're using a simple label-based approach
-        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        # Draw the main widget
+        self.main_widget.render(painter)
+
+        painter.end()
 
     def update_status(self, message):
         """Update the status message"""
         self.status_label.setText(message)
-        print(f"Status: {message}")  # Also log to console
         self.repaint()
 
     def on_loading_finished(self, success, message, config_data):
@@ -780,16 +809,15 @@ class SplashScreen(QSplashScreen):
             self.status_label.setText("✅ " + message)
             self.status_label.setStyleSheet("""
                 QLabel {
-                    color: #ffffff;
-                    font-size: 12px;
+                    color: #27ae60;
+                    font-size: 14px;
                     font-weight: 500;
-                    background-color: rgba(39, 174, 96, 0.9);
-                    padding: 8px 12px;
-                    border-radius: 20px;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    background-color: rgba(255, 255, 255, 0.8);
+                    padding: 10px 20px;
+                    border-radius: 15px;
+                    border: 1px solid #27ae60;
                 }
             """)
-            print(f"✅ {message}")
 
             # Update logo with app name from config (only if using text fallback)
             app_name = config_data.get('app_name', 'MyApp')
@@ -808,16 +836,15 @@ class SplashScreen(QSplashScreen):
             self.status_label.setText("❌ " + message)
             self.status_label.setStyleSheet("""
                 QLabel {
-                    color: #ffffff;
-                    font-size: 12px;
+                    color: #e74c3c;
+                    font-size: 14px;
                     font-weight: 500;
-                    background-color: rgba(231, 76, 60, 0.9);
-                    padding: 8px 12px;
-                    border-radius: 20px;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    background-color: rgba(255, 255, 255, 0.8);
+                    padding: 10px 20px;
+                    border-radius: 15px;
+                    border: 1px solid #e74c3c;
                 }
             """)
-            print(f"❌ {message}")
             self.repaint()
 
             # Close splash screen after showing error
