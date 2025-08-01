@@ -1,4 +1,4 @@
-# NASTP Control Panel - Python Dependencies
+# Control Panel - Python Dependencies
 # Core GUI Framework
 PyQt5>=5.15.0
 

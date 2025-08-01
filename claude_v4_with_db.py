@@ -694,7 +694,7 @@ class SplashScreen(QSplashScreen):
 
     def load_logo(self):
         """Load and display the logo image"""
-        logo_path = "nastp-logo.gif"
+        logo_path = "logo.gif"
 
         if os.path.exists(logo_path):
             # Load the GIF logo using QMovie for animation support
@@ -821,7 +821,7 @@ class SplashScreen(QSplashScreen):
 
             # Update logo with app name from config (only if using text fallback)
             app_name = config_data.get('app_name', 'MyApp')
-            if not os.path.exists("nastp-logo.gif"):
+            if not os.path.exists("logo.gif"):
                 self.logo_label.setText(f"🚀 {app_name}")
 
             self.repaint()
