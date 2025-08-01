@@ -1,4 +1,4 @@
-# NASTP Control Panel
+#   Control Panel
 
 A modern PyQt5-based microservice management application featuring an animated splash screen and comprehensive control interface for managing distributed services.
 
@@ -10,7 +10,7 @@ A modern PyQt5-based microservice management application featuring an animated s
 ## 🚀 Features
 
 ### ✨ **Animated Splash Screen**
-- Custom animated NASTP logo (GIF support)
+- Custom animated   logo (GIF support)
 - Real-time loading status updates
 - Frameless, transparent design
 - Fixed size (prevents window resizing)
@@ -89,7 +89,7 @@ python claude_v4_with_db.py
 ```
 
 ### First Launch
-1. The animated NASTP splash screen appears
+1. The animated   splash screen appears
 2. Loading status updates in real-time
 3. Main control panel opens automatically
 4. Microservices are auto-created if missing
@@ -103,7 +103,7 @@ SplashScreenDB-master/
 ├── claude_v3.py              # Previous version
 ├── claude_splash.py          # Minimal splash screen
 ├── gemini_splash.py          # Alternative implementation
-├── nastp-logo.gif            # Animated logo file
+├──  -logo.gif            # Animated logo file
 ├── logo.png                  # Fallback static logo
 ├── .venv/                    # Virtual environment
 ├── requirements.txt          # Python dependencies
@@ -146,7 +146,7 @@ Click the **"⚙️ Settings"** button to access:
 
 | Setting | Description | Example |
 |---------|-------------|---------|
-| **App Name** | Application title | `NASTP Control Panel` |
+| **App Name** | Application title | `  Control Panel` |
 | **App Version** | Version identifier | `2.0.0` |
 | **Microservices** | Comma-separated service files | `auth_service.py,data_service.py` |
 | **Auto Start** | Services to launch automatically | `auth_service.py,data_service.py` |
@@ -158,7 +158,7 @@ Click the **"⚙️ Settings"** button to access:
 1. **Replace the logo file**:
    ```bash
    # Replace with your animated GIF
-   cp your-logo.gif nastp-logo.gif
+   cp your-logo.gif  -logo.gif
    ```
 
 2. **Update the code** (if needed):
@@ -368,7 +368,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **PyQt5** for the GUI framework
 - **PostgreSQL** for database support
-- **NASTP** for project requirements and logo
+- ** ** for project requirements and logo
 
 ## 📞 Support
 
