@@ -23,7 +23,7 @@ class ConfigLoader(QThread):
     def __init__(self):
         super().__init__()
         self.config_data = {}
-        self.should_stop = False
+        self.should_stop = Falsef
         # Default connection parameters (you can modify these)
         self.default_connection = {
             'host': 'localhost',
@@ -54,7 +54,7 @@ class ConfigLoader(QThread):
 
             # Mock configuration data
             config = {
-                'app_name': 'NASTP Control Panel',
+                'app_name': 'Control Panel',
                 'app_version': '2.0.0',
                 'microservices': 'auth_service.py,data_service.py,api_service.py,notification_service.py,logging_service.py',
                 'auto_start': 'auth_service.py,data_service.py',
